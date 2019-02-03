@@ -6,29 +6,30 @@ import (
 )
 
 type Page struct {
-	collection *PagesCollection `json:"-"`
+	collection    *PagesCollection `json:"-"`
 
-	ID            int     `json:"id,omitempty"`
-	Date          string  `json:"date,omitempty"`
-	DateGMT       string  `json:"date_gmt,omitempty"`
-	GUID          GUID    `json:"guid,omitempty"`
-	Link          string  `json:"link,omitempty"`
-	Modified      string  `json:"modified,omitempty"`
-	ModifiedGMT   string  `json:"modifiedGMT,omitempty"`
-	Password      string  `json:"password,omitempty"`
-	Slug          string  `json:"slug,omitempty"`
-	Status        string  `json:"status,omitempty"`
-	Type          string  `json:"type,omitempty"`
-	Parent        int     `json:"parent,omitempty"`
-	Title         Title   `json:"title,omitempty"`
-	Content       Content `json:"content,omitempty"`
-	Author        int     `json:"author,omitempty"`
-	Excerpt       Excerpt `json:"excerpt,omitempty"`
-	FeaturedImage int     `json:"featured_image,omitempty"`
-	CommentStatus string  `json:"comment_status,omitempty"`
-	PingStatus    string  `json:"ping_status,omitempty"`
-	MenuOrder     int     `json:"menu_order,omitempty"`
-	Template      string  `json:"template,omitempty"`
+	ID            int     		`json:"id,omitempty"`
+	Date          string  		`json:"date,omitempty"`
+	DateGMT       string  		`json:"date_gmt,omitempty"`
+	GUID          GUID    		`json:"guid,omitempty"`
+	Link          string  		`json:"link,omitempty"`
+	Modified      string  		`json:"modified,omitempty"`
+	ModifiedGMT   string  		`json:"modifiedGMT,omitempty"`
+	Password      string  		`json:"password,omitempty"`
+	Slug          string  		`json:"slug,omitempty"`
+	Status        string  		`json:"status,omitempty"`
+	Type          string  		`json:"type,omitempty"`
+	Parent        int     		`json:"parent,omitempty"`
+	Title         Title   		`json:"title,omitempty"`
+	Content       Content 		`json:"content,omitempty"`
+	Author        int     		`json:"author,omitempty"`
+	Excerpt       Excerpt 		`json:"excerpt,omitempty"`
+	FeaturedImage int     		`json:"featured_image,omitempty"`
+	FeaturedMedia int     		`json:"featured_media,omitempty"`
+	CommentStatus string  		`json:"comment_status,omitempty"`
+	PingStatus    string  		`json:"ping_status,omitempty"`
+	MenuOrder     int     		`json:"menu_order,omitempty"`
+	Template      string  		`json:"template,omitempty"`
 }
 
 func (entity *Page) setCollection(col *PagesCollection) {

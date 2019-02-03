@@ -8,6 +8,8 @@ import (
 	"log"
 	"net/http"
 	"reflect"
+	"encoding/json"
+	"time"
 )
 
 const (
@@ -22,6 +24,8 @@ const (
 	CollectionTerms      = "terms"
 	CollectionStatuses   = "statuses"
 	CollectionTypes      = "types"
+	CollectionTags       = "tags"
+	CollectionCategories = "categories"
 )
 
 type GeneralError struct {
@@ -37,6 +41,8 @@ type Options struct {
 	Username string
 	Password string
 	// TODO: support OAuth authentication
+
+	Timeout time.Duration
 }
 
 type Client struct {
@@ -46,17 +52,20 @@ type Client struct {
 }
 
 // Used to create a new SuperAgent object.
-func newHTTPClient() *gorequest.SuperAgent {
+func newHTTPClient(timeout time.Duration) *gorequest.SuperAgent {
 	client := gorequest.New()
 	client.Client = &http.Client{Jar: nil}
 	client.Transport = &http.Transport{
 		DisableKeepAlives: true,
 	}
+	if timeout>0 {
+		client.Timeout(timeout)
+	}
 	return client
 }
 
 func NewClient(options *Options) *Client {
-	req := newHTTPClient().SetBasicAuth(options.Username, options.Password)
+	req := newHTTPClient(options.Timeout).SetBasicAuth(options.Username, options.Password)
 	req = req.RedirectPolicy(func(r gorequest.Request, via []gorequest.Request) error {
 		// perform BasicAuth on each redirect request.
 		// (requests are cookie-less; so we need to keep re-auth-ing again)
@@ -127,6 +136,56 @@ func (client *Client) Types() *TypesCollection {
 	}
 }
 
+func (client *Client) Tags() *TagsCollection {
+	return &TagsCollection{
+		client: client,
+		url:    fmt.Sprintf("%v/%v", client.baseURL, CollectionTags),
+	}
+}
+
+
+func (client *Client) Categories() *CategoriesCollection {
+	return &CategoriesCollection{
+		client: client,
+		url:    fmt.Sprintf("%v/%v", client.baseURL, CollectionCategories),
+	}
+}
+
+func (client *Client) CustomPostJson(url string, obj interface{}) (*http.Response, []byte, error) {
+	reqBody,err := json.Marshal(obj)
+	if err!=nil {
+		return nil, []byte{}, err
+	}
+	s := client.req.Post(url)
+	buf := bytes.NewBuffer(reqBody)
+
+	req, err := http.NewRequest(s.Method, s.Url, buf)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.SetBasicAuth(s.BasicAuth.Username, s.BasicAuth.Password)
+
+	// Set Transport
+	s.Client.Transport = s.Transport
+
+	// Send request
+	resp, err := s.Client.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	_resp := http.Response(*resp)
+	return &_resp, body, err
+}
+
 func (client *Client) List(url string, params interface{}, result interface{}) (*http.Response, []byte, error) {
 	client.req.TargetType = "json"
 	resp, body, errSlice := client.req.Get(url).Query(params).EndBytes()
@@ -137,6 +196,7 @@ func (client *Client) List(url string, params interface{}, result interface{}) (
 	_resp := http.Response(*resp)
 	return &_resp, body, err
 }
+
 func (client *Client) Create(url string, content interface{}, result interface{}) (*http.Response, []byte, error) {
 	contentVal := unpackInterfacePointer(content)
 	client.req.TargetType = "json"
